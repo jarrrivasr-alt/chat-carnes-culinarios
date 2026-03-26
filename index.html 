@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Asistente Inteligente — Carnes y Culinarios Selectos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --azul-oscuro: #0F4C75;
+  --azul-medio: #3282B8;
+  --verde-teal: #00C9A7;
+  --bg-dark: #0a0f1a;
+  --bg-card: #111827;
+  --bg-input: #1a2235;
+  --text-primary: #f0f4f8;
+  --text-secondary: #8899aa;
+  --border-subtle: rgba(50, 130, 184, 0.15);
+}
+
+html, body { 
+  height: 100%; 
+  font-family: 'Sora', sans-serif;
+  background: var(--bg-dark);
+  color: var(--text-primary);
+  overflow: hidden;
+}
+
+/* === LAYOUT === */
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* === HEADER === */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: linear-gradient(135deg, rgba(15,76,117,0.3) 0%, rgba(10,15,26,0.9) 100%);
+  backdrop-filter: blur(20px);
+  flex-shrink: 0;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.logo-mark {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--verde-teal), var(--azul-medio));
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 18px;
+  color: white;
+  box-shadow: 0 4px 15px rgba(0, 201, 167, 0.3);
+}
+
+.header-text h1 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.3px;
+}
+
+.header-text span {
+  font-size: 11px;
+  color: var(--verde-teal);
+  font-weight: 400;
+  letter-spacing: 0.5px;
+}
+
+.header-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  background: var(--verde-teal);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0, 201, 167, 0.4); }
+  50% { opacity: 0.7; box-shadow: 0 0 0 6px rgba(0, 201, 167, 0); }
+}
+
+/* === MESSAGES === */
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--azul-medio) transparent;
+}
+
+.messages::-webkit-scrollbar { width: 5px; }
+.messages::-webkit-scrollbar-thumb { background: var(--azul-medio); border-radius: 10px; }
+
+/* Welcome screen */
+.welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  text-align: center;
+  padding: 40px 20px;
+  animation: fadeIn 0.8s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.welcome-icon {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, var(--azul-oscuro), var(--azul-medio));
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  margin-bottom: 24px;
+  box-shadow: 0 8px 32px rgba(15, 76, 117, 0.4);
+  position: relative;
+}
+
+.welcome-icon::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, var(--verde-teal), var(--azul-medio));
+  z-index: -1;
+  opacity: 0.5;
+}
+
+.welcome h2 {
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  background: linear-gradient(135deg, var(--text-primary), var(--verde-teal));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.welcome p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  max-width: 400px;
+  line-height: 1.6;
+  margin-bottom: 32px;
+}
+
+.suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  max-width: 500px;
+}
+
+.suggestion {
+  padding: 10px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Sora', sans-serif;
+}
+
+.suggestion:hover {
+  border-color: var(--verde-teal);
+  color: var(--verde-teal);
+  background: rgba(0, 201, 167, 0.05);
+  transform: translateY(-1px);
+}
+
+/* Message bubbles */
+.message {
+  display: flex;
+  gap: 12px;
+  max-width: 85%;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.message.user {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.message-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.message.assistant .message-avatar {
+  background: linear-gradient(135deg, var(--azul-oscuro), var(--azul-medio));
+  box-shadow: 0 2px 8px rgba(15, 76, 117, 0.3);
+}
+
+.message.user .message-avatar {
+  background: linear-gradient(135deg, var(--verde-teal), #00a88a);
+  box-shadow: 0 2px 8px rgba(0, 201, 167, 0.3);
+}
+
+.message-content {
+  padding: 14px 18px;
+  border-radius: 16px;
+  font-size: 13.5px;
+  line-height: 1.65;
+  letter-spacing: -0.1px;
+}
+
+.message.assistant .message-content {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-top-left-radius: 4px;
+  color: var(--text-primary);
+}
+
+.message.user .message-content {
+  background: linear-gradient(135deg, var(--azul-oscuro), var(--azul-medio));
+  border-top-right-radius: 4px;
+  color: white;
+}
+
+.message-content p { margin-bottom: 8px; }
+.message-content p:last-child { margin-bottom: 0; }
+.message-content strong { color: var(--verde-teal); font-weight: 600; }
+.message-content ul, .message-content ol { padding-left: 20px; margin: 8px 0; }
+.message-content li { margin-bottom: 4px; }
+.message-content table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 12px; }
+.message-content th { background: rgba(15,76,117,0.3); padding: 8px; text-align: left; border-bottom: 1px solid var(--border-subtle); }
+.message-content td { padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.message-content code { background: rgba(0,201,167,0.1); padding: 2px 6px; border-radius: 4px; font-size: 12px; }
+.message-content pre { background: var(--bg-dark); padding: 12px; border-radius: 8px; overflow-x: auto; margin: 8px 0; }
+.message-content pre code { background: none; padding: 0; }
+
+/* Typing indicator */
+.typing {
+  display: flex;
+  gap: 4px;
+  padding: 8px 0;
+}
+
+.typing span {
+  width: 6px;
+  height: 6px;
+  background: var(--verde-teal);
+  border-radius: 50%;
+  animation: typing 1.4s infinite;
+}
+
+.typing span:nth-child(2) { animation-delay: 0.2s; }
+.typing span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typing {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-6px); opacity: 1; }
+}
+
+/* === INPUT === */
+.input-area {
+  padding: 16px 24px 20px;
+  border-top: 1px solid var(--border-subtle);
+  background: linear-gradient(0deg, rgba(10,15,26,1) 0%, rgba(10,15,26,0.95) 100%);
+  flex-shrink: 0;
+}
+
+.input-wrapper {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.input-wrapper textarea {
+  flex: 1;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  padding: 14px 18px;
+  color: var(--text-primary);
+  font-family: 'Sora', sans-serif;
+  font-size: 13.5px;
+  resize: none;
+  outline: none;
+  max-height: 120px;
+  min-height: 48px;
+  line-height: 1.5;
+  transition: border-color 0.2s;
+}
+
+.input-wrapper textarea:focus {
+  border-color: var(--azul-medio);
+}
+
+.input-wrapper textarea::placeholder {
+  color: var(--text-secondary);
+}
+
+.send-btn {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, var(--verde-teal), #00a88a);
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.send-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 15px rgba(0, 201, 167, 0.4);
+}
+
+.send-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.send-btn svg {
+  width: 20px;
+  height: 20px;
+  fill: white;
+}
+
+/* === FOOTER === */
+.footer {
+  text-align: center;
+  padding: 10px;
+  font-size: 10px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+.footer a {
+  color: var(--verde-teal);
+  text-decoration: none;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 640px) {
+  .header { padding: 12px 16px; }
+  .messages { padding: 16px; }
+  .input-area { padding: 12px 16px 16px; }
+  .message { max-width: 92%; }
+  .welcome h2 { font-size: 18px; }
+  .suggestions { flex-direction: column; align-items: center; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-left">
+      <div class="logo-mark">D</div>
+      <div class="header-text">
+        <h1>Carnes y Culinarios Selectos</h1>
+        <span>ASISTENTE INTELIGENTE</span>
+      </div>
+    </div>
+    <div class="header-status">
+      <div class="status-dot"></div>
+      En línea
+    </div>
+  </div>
+
+  <!-- MESSAGES -->
+  <div class="messages" id="messages">
+    <div class="welcome" id="welcome">
+      <div class="welcome-icon">🥩</div>
+      <h2>Asistente Inteligente</h2>
+      <p>Analizo tus datos de ventas, producción y finanzas. Genero reportes, cotizaciones y los envío por email. ¿En qué te puedo ayudar?</p>
+      <div class="suggestions">
+        <button class="suggestion" onclick="sendSuggestion(this)">📊 Resumen de ventas del mes</button>
+        <button class="suggestion" onclick="sendSuggestion(this)">🥩 Top 5 productos más vendidos</button>
+        <button class="suggestion" onclick="sendSuggestion(this)">👥 Desempeño de vendedores</button>
+        <button class="suggestion" onclick="sendSuggestion(this)">📦 Estado de inventarios</button>
+        <button class="suggestion" onclick="sendSuggestion(this)">💰 Cartera vencida</button>
+        <button class="suggestion" onclick="sendSuggestion(this)">📋 Generar cotización</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- INPUT -->
+  <div class="input-area">
+    <div class="input-wrapper">
+      <textarea id="input" rows="1" placeholder="Escribe tu consulta..." onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+      <button class="send-btn" id="sendBtn" onclick="sendMessage()" disabled>
+        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    Powered by <a href="https://datalogo.lat" target="_blank">Datálogo</a> — Datos que responden. Sistemas que actúan.
+  </div>
+</div>
+
+<script>
+// ============================================
+// CONFIGURACIÓN — CAMBIAR ESTOS VALORES
+// ============================================
+const API_URL = 'https://dify.datalogo.lat/v1';
+const API_KEY = 'app-3iZRCPYKuLY3m10UuocYNEba'; // Reemplazar con tu API Key de Dify
+// ============================================
+
+let conversationId = '';
+let isLoading = false;
+
+const messagesEl = document.getElementById('messages');
+const inputEl = document.getElementById('input');
+const sendBtn = document.getElementById('sendBtn');
+const welcomeEl = document.getElementById('welcome');
+
+inputEl.addEventListener('input', () => {
+  sendBtn.disabled = !inputEl.value.trim() || isLoading;
+});
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+function sendSuggestion(btn) {
+  inputEl.value = btn.textContent.replace(/^.{2} /, '');
+  sendMessage();
+}
+
+function addMessage(role, content) {
+  if (welcomeEl) welcomeEl.remove();
+  
+  const div = document.createElement('div');
+  div.className = `message ${role}`;
+  
+  const avatar = document.createElement('div');
+  avatar.className = 'message-avatar';
+  avatar.textContent = role === 'user' ? '👤' : '🤖';
+  
+  const contentDiv = document.createElement('div');
+  contentDiv.className = 'message-content';
+  
+  if (role === 'assistant' && content === '...') {
+    contentDiv.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
+  } else {
+    contentDiv.innerHTML = formatMessage(content);
+  }
+  
+  div.appendChild(avatar);
+  div.appendChild(contentDiv);
+  messagesEl.appendChild(div);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+  
+  return contentDiv;
+}
+
+function formatMessage(text) {
+  // Basic markdown-like formatting
+  text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  text = text.replace(/\n\n/g, '</p><p>');
+  text = text.replace(/\n- /g, '</p><ul><li>');
+  text = text.replace(/\n\* /g, '</p><ul><li>');
+  text = text.replace(/<\/li>\n/g, '</li>');
+  
+  // Wrap in paragraph if not already
+  if (!text.startsWith('<')) text = '<p>' + text + '</p>';
+  
+  return text;
+}
+
+async function sendMessage() {
+  const text = inputEl.value.trim();
+  if (!text || isLoading) return;
+  
+  isLoading = true;
+  sendBtn.disabled = true;
+  inputEl.value = '';
+  inputEl.style.height = 'auto';
+  
+  addMessage('user', text);
+  const assistantContent = addMessage('assistant', '...');
+  
+  try {
+    const response = await fetch(`${API_URL}/chat-messages`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        inputs: {},
+        query: text,
+        response_mode: 'streaming',
+        conversation_id: conversationId,
+        user: 'demo-user'
+      })
+    });
+    
+    if (!response.ok) throw new Error(`Error ${response.status}`);
+    
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let fullText = '';
+    let buffer = '';
+    
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+      
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const data = line.slice(6);
+        if (data === '' || data === '[DONE]') continue;
+        
+        try {
+          const parsed = JSON.parse(data);
+          
+          if (parsed.event === 'message' || parsed.event === 'agent_message') {
+            fullText += parsed.answer || '';
+            assistantContent.innerHTML = formatMessage(fullText);
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+          }
+          
+          if (parsed.conversation_id) {
+            conversationId = parsed.conversation_id;
+          }
+          
+        } catch (e) { /* skip unparseable chunks */ }
+      }
+    }
+    
+    if (!fullText) {
+      assistantContent.innerHTML = '<p>No se recibió respuesta. Intenta de nuevo.</p>';
+    }
+    
+  } catch (err) {
+    assistantContent.innerHTML = `<p>Error de conexión: ${err.message}. Verifica tu conexión e intenta de nuevo.</p>`;
+  }
+  
+  isLoading = false;
+  sendBtn.disabled = !inputEl.value.trim();
+  inputEl.focus();
+}
+</script>
+
+</body>
+</html>
