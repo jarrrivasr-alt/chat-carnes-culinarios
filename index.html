@@ -412,23 +412,23 @@ html, body {
     </div>
     <div class="header-status">
       <div class="status-dot"></div>
-      En línea
+      En linea
     </div>
   </div>
 
   <!-- MESSAGES -->
   <div class="messages" id="messages">
     <div class="welcome" id="welcome">
-      <div class="welcome-icon">🥩</div>
+      <div class="welcome-icon">&#x1F969;</div>
       <h2>Asistente Inteligente</h2>
-      <p>Analizo tus datos de ventas, producción y finanzas. Genero reportes, cotizaciones y los envío por email. ¿En qué te puedo ayudar?</p>
+      <p>Analizo tus datos de ventas, produccion y finanzas. Genero reportes, cotizaciones y los envio por email. En que te puedo ayudar?</p>
       <div class="suggestions">
-        <button class="suggestion" onclick="sendSuggestion(this)">📊 Resumen de ventas del mes</button>
-        <button class="suggestion" onclick="sendSuggestion(this)">🥩 Top 5 productos más vendidos</button>
-        <button class="suggestion" onclick="sendSuggestion(this)">👥 Desempeño de vendedores</button>
-        <button class="suggestion" onclick="sendSuggestion(this)">📦 Estado de inventarios</button>
-        <button class="suggestion" onclick="sendSuggestion(this)">💰 Cartera vencida</button>
-        <button class="suggestion" onclick="sendSuggestion(this)">📋 Generar cotización</button>
+        <button class="suggestion" onclick="sendSuggestion(this)">Resumen de ventas del mes</button>
+        <button class="suggestion" onclick="sendSuggestion(this)">Top 5 productos mas vendidos</button>
+        <button class="suggestion" onclick="sendSuggestion(this)">Desempeno de vendedores</button>
+        <button class="suggestion" onclick="sendSuggestion(this)">Estado de inventarios</button>
+        <button class="suggestion" onclick="sendSuggestion(this)">Cartera vencida</button>
+        <button class="suggestion" onclick="sendSuggestion(this)">Generar cotizacion</button>
       </div>
     </div>
   </div>
@@ -445,16 +445,16 @@ html, body {
 
   <!-- FOOTER -->
   <div class="footer">
-    Powered by <a href="https://datalogo.lat" target="_blank">Datálogo</a> — Datos que responden. Sistemas que actúan.
+    Powered by <a href="https://datalogo.lat" target="_blank">Datalogo</a> — Datos que responden. Sistemas que actuan.
   </div>
 </div>
 
 <script>
 // ============================================
-// CONFIGURACIÓN — CAMBIAR ESTOS VALORES
+// CONFIGURACION
 // ============================================
 const API_URL = 'https://dify.datalogo.lat/v1';
-const API_KEY = 'app-3iZRCPYKuLY3m10UuocYNEba'; // Reemplazar con tu API Key de Dify
+const API_KEY = 'app-3iZRCPYKuLY3m10UuocYNEba';
 // ============================================
 
 let conversationId = '';
@@ -465,7 +465,7 @@ const inputEl = document.getElementById('input');
 const sendBtn = document.getElementById('sendBtn');
 const welcomeEl = document.getElementById('welcome');
 
-inputEl.addEventListener('input', () => {
+inputEl.addEventListener('input', function() {
   sendBtn.disabled = !inputEl.value.trim() || isLoading;
 });
 
@@ -482,21 +482,21 @@ function handleKey(e) {
 }
 
 function sendSuggestion(btn) {
-  inputEl.value = btn.textContent.replace(/^.{2} /, '');
+  inputEl.value = btn.textContent;
   sendMessage();
 }
 
 function addMessage(role, content) {
   if (welcomeEl) welcomeEl.remove();
   
-  const div = document.createElement('div');
-  div.className = `message ${role}`;
+  var div = document.createElement('div');
+  div.className = 'message ' + role;
   
-  const avatar = document.createElement('div');
+  var avatar = document.createElement('div');
   avatar.className = 'message-avatar';
-  avatar.textContent = role === 'user' ? '👤' : '🤖';
+  avatar.textContent = role === 'user' ? '\uD83D\uDC64' : '\uD83E\uDD16';
   
-  const contentDiv = document.createElement('div');
+  var contentDiv = document.createElement('div');
   contentDiv.className = 'message-content';
   
   if (role === 'assistant' && content === '...') {
@@ -514,21 +514,18 @@ function addMessage(role, content) {
 }
 
 function formatMessage(text) {
-  // Basic markdown-like formatting
   text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
   text = text.replace(/\n\n/g, '</p><p>');
   text = text.replace(/\n- /g, '</p><ul><li>');
   text = text.replace(/\n\* /g, '</p><ul><li>');
-  text = text.replace(/<\/li>\n/g, '</li>');
   
-  // Wrap in paragraph if not already
   if (!text.startsWith('<')) text = '<p>' + text + '</p>';
   
   return text;
 }
 
 async function sendMessage() {
-  const text = inputEl.value.trim();
+  var text = inputEl.value.trim();
   if (!text || isLoading) return;
   
   isLoading = true;
@@ -537,13 +534,13 @@ async function sendMessage() {
   inputEl.style.height = 'auto';
   
   addMessage('user', text);
-  const assistantContent = addMessage('assistant', '...');
+  var assistantContent = addMessage('assistant', '...');
   
   try {
-    const response = await fetch(`${API_URL}/chat-messages`, {
+    var response = await fetch(API_URL + '/chat-messages', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${API_KEY}`,
+        'Authorization': 'Bearer ' + API_KEY,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
@@ -555,28 +552,29 @@ async function sendMessage() {
       })
     });
     
-    if (!response.ok) throw new Error(`Error ${response.status}`);
+    if (!response.ok) throw new Error('Error ' + response.status);
     
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let fullText = '';
-    let buffer = '';
+    var reader = response.body.getReader();
+    var decoder = new TextDecoder();
+    var fullText = '';
+    var buffer = '';
     
     while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
+      var result = await reader.read();
+      if (result.done) break;
       
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
+      buffer += decoder.decode(result.value, { stream: true });
+      var lines = buffer.split('\n');
       buffer = lines.pop() || '';
       
-      for (const line of lines) {
-        if (!line.startsWith('data: ')) continue;
-        const data = line.slice(6);
+      for (var i = 0; i < lines.length; i++) {
+        var line = lines[i];
+        if (line.indexOf('data: ') !== 0) continue;
+        var data = line.slice(6);
         if (data === '' || data === '[DONE]') continue;
         
         try {
-          const parsed = JSON.parse(data);
+          var parsed = JSON.parse(data);
           
           if (parsed.event === 'message' || parsed.event === 'agent_message') {
             fullText += parsed.answer || '';
@@ -588,16 +586,16 @@ async function sendMessage() {
             conversationId = parsed.conversation_id;
           }
           
-        } catch (e) { /* skip unparseable chunks */ }
+        } catch (e) { /* skip */ }
       }
     }
     
     if (!fullText) {
-      assistantContent.innerHTML = '<p>No se recibió respuesta. Intenta de nuevo.</p>';
+      assistantContent.innerHTML = '<p>No se recibio respuesta. Intenta de nuevo.</p>';
     }
     
   } catch (err) {
-    assistantContent.innerHTML = `<p>Error de conexión: ${err.message}. Verifica tu conexión e intenta de nuevo.</p>`;
+    assistantContent.innerHTML = '<p>Error de conexion: ' + err.message + '. Verifica tu conexion e intenta de nuevo.</p>';
   }
   
   isLoading = false;
