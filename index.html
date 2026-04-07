@@ -290,13 +290,13 @@ function deleteConversation(e,id){
     headers:{'Authorization':'Bearer '+DIFY_KEY,'Content-Type':'application/json'},
     body:JSON.stringify({user:getDifyUser()})
   })
-  .then(function(r){return r.json()}).then(function(d){
-    if(d.result==='success'||d.message||d.result){
+  .then(function(r){
+    if(r.ok||r.status===200||r.status===204){
       conversations=conversations.filter(function(c){return c.id!==id});
       if(conversationId===id){conversationId='';messagesEl.innerHTML='';var w=document.createElement('div');w.className='welcome';w.id='welcome';w.innerHTML=getWelcomeHTML();messagesEl.appendChild(w);welcomeEl=w}
       renderSidebar();
-    }else{alert('No se pudo borrar la conversacion')}
-  }).catch(function(){alert('Error al borrar la conversacion')})
+    }else{alert('No se pudo borrar la conversacion ('+r.status+')')}
+  }).catch(function(){alert('Error de conexion al borrar')})
 }
 
 function toggleCollapse(){
@@ -376,12 +376,17 @@ function addMessage(role,content){
 }
 
 function formatMessage(t){
+  // Limpiar saltos de línea excesivos al inicio/fin y múltiples líneas vacías
+  t=t.replace(/^\n+/,'').replace(/\n+$/,'').replace(/\n{3,}/g,'\n\n');
   t=t.replace(/^### (.*$)/gm,'<h3>$1</h3>');t=t.replace(/^## (.*$)/gm,'<h2>$1</h2>');
   t=t.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');t=t.replace(/^---$/gm,'<hr>');
   if(t.indexOf('|')!==-1){var ls=t.split('\n'),inT=false,r=[],isH=false;for(var i=0;i<ls.length;i++){var l=ls[i].trim();if(l.match(/^\|.*\|$/)){if(l.match(/^\|[\s\-:|]+\|$/))continue;if(!inT){r.push('<div class="table-wrap"><table><thead>');inT=true;isH=true}var cs=l.split('|').filter(function(c){return c.trim()!==''});var tg=isH?'th':'td';r.push('<tr>'+cs.map(function(c){return'<'+tg+'>'+c.trim()+'</'+tg+'>'}).join('')+'</tr>');if(isH){r.push('</thead><tbody>');isH=false}}else{if(inT){r.push('</tbody></table></div>');inT=false}r.push(l)}}if(inT)r.push('</tbody></table></div>');t=r.join('\n')}
   t=t.replace(/^\d+\.\s+(.*$)/gm,'<li>$1</li>');t=t.replace(/^[\-\*]\s+(.*$)/gm,'<li>$1</li>');
-  t=t.replace(/(<li>.*<\/li>\n?)+/g,'<ul>$&</ul>');t=t.replace(/\n\n/g,'</p><p>');t=t.replace(/\n/g,'<br>');
-  if(!t.startsWith('<'))t='<p>'+t+'</p>';return t
+  t=t.replace(/(<li>.*<\/li>\n?)+/g,'<ul>$&</ul>');
+  // Convertir párrafos sin generar <p> vacíos
+  var parts=t.split(/\n\n+/);
+  t=parts.map(function(p){p=p.trim();if(!p)return '';if(p.startsWith('<'))return p;return '<p>'+p.replace(/\n/g,'<br>')+'</p>';}).filter(Boolean).join('');
+  return t||'<p></p>'
 }
 
 async function sendMessage(){
