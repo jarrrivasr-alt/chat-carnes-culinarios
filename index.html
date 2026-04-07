@@ -51,6 +51,24 @@ body{height:100%;font-family:'Sora',sans-serif;background:var(--bg-dark);color:v
 .sidebar-item.active{background:rgba(0,201,167,0.1);color:var(--verde-teal);border-left:2px solid var(--verde-teal)}
 .sidebar-empty{padding:20px;text-align:center;font-size:12px;color:var(--text-secondary);opacity:0.5}
 .sidebar-footer{padding:12px 16px;border-top:1px solid var(--border-subtle)}
+
+/* === SIDEBAR ITEM CON BOTÓN BORRAR === */
+.sidebar-item{position:relative;padding-right:32px!important}
+.sidebar-item .delete-btn{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-secondary);font-size:14px;cursor:pointer;opacity:0;transition:opacity 0.15s,color 0.15s;padding:3px 5px;border-radius:4px;line-height:1}
+.sidebar-item:hover .delete-btn{opacity:1}
+.sidebar-item .delete-btn:hover{color:#ff6b6b;background:rgba(255,60,60,0.1)}
+
+/* === BOTÓN COLAPSAR SIDEBAR === */
+.sidebar-toggle-btn{background:none;border:none;color:var(--text-secondary);font-size:14px;cursor:pointer;padding:4px 6px;border-radius:6px;transition:all 0.2s;display:flex;align-items:center;justify-content:center;width:26px;height:26px}
+.sidebar-toggle-btn:hover{background:rgba(50,130,184,0.15);color:var(--text-primary)}
+
+/* === SIDEBAR COLAPSADO (DESKTOP) === */
+@media(min-width:769px){
+.sidebar.collapsed{width:0;overflow:hidden;border-right:none}
+.sidebar.collapsed~.chat-main .collapse-btn-float{display:flex}
+.collapse-btn-float{display:none;position:fixed;top:12px;left:12px;z-index:200;background:rgba(8,12,22,0.9);border:1px solid var(--border-subtle);color:var(--text-secondary);padding:6px 8px;border-radius:8px;font-size:13px;cursor:pointer;backdrop-filter:blur(10px);transition:all 0.2s}
+.collapse-btn-float:hover{color:var(--text-primary);border-color:var(--verde-teal)}
+}
 .sidebar-user{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--text-secondary)}
 .sidebar-user-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px}
 .logout-btn{background:none;border:1px solid rgba(255,60,60,0.3);color:#ff6b6b;font-size:10px;padding:4px 10px;border-radius:6px;cursor:pointer;font-family:'Sora',sans-serif;transition:all 0.2s}
@@ -175,11 +193,12 @@ body{height:100%;font-family:'Sora',sans-serif;background:var(--bg-dark);color:v
 <!-- APP -->
 <div class="app-container" id="appContainer">
 <div class="sidebar" id="sidebar">
-<div class="sidebar-header"><h3>Conversaciones</h3><div class="sidebar-btns"><button class="new-chat-btn" onclick="newChat()" title="Nueva conversacion">+</button><button class="sidebar-close" onclick="toggleSidebar()">&#10005;</button></div></div>
+<div class="sidebar-header"><h3>Conversaciones</h3><div class="sidebar-btns"><button class="new-chat-btn" onclick="newChat()" title="Nueva conversacion">+</button><button class="sidebar-toggle-btn" id="collapseBtn" onclick="toggleCollapse()" title="Ocultar panel">&#8249;</button><button class="sidebar-close" onclick="toggleSidebar()">&#10005;</button></div></div>
 <div class="sidebar-list" id="sidebarList"><div class="sidebar-empty" id="sidebarEmpty">Sin conversaciones previas</div></div>
 <div class="sidebar-footer"><div class="sidebar-user"><span class="sidebar-user-name" id="userName"></span><button class="logout-btn" onclick="doLogout()">Cerrar sesion</button></div></div>
 </div>
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+<button class="collapse-btn-float" onclick="toggleCollapse()" title="Mostrar panel">&#8250;</button>
 <div class="chat-main">
 <div class="header">
 <div class="header-left">
@@ -264,6 +283,26 @@ function enterApp(user,token){
   loadConversations();
 }
 
+function deleteConversation(e,id){
+  e.stopPropagation();
+  if(!confirm('¿Borrar esta conversacion?'))return;
+  fetch(DIFY_URL+'/conversations/'+id+'?user='+encodeURIComponent(getDifyUser()),{method:'DELETE',headers:{'Authorization':'Bearer '+DIFY_KEY}})
+  .then(function(){
+    conversations=conversations.filter(function(c){return c.id!==id});
+    if(conversationId===id){conversationId='';messagesEl.innerHTML='';var w=document.createElement('div');w.className='welcome';w.id='welcome';w.innerHTML=getWelcomeHTML();messagesEl.appendChild(w);welcomeEl=w}
+    renderSidebar();
+  }).catch(function(){alert('No se pudo borrar la conversacion')})
+}
+
+function toggleCollapse(){
+  var sidebar=document.getElementById('sidebar');
+  var btn=document.getElementById('collapseBtn');
+  sidebar.classList.toggle('collapsed');
+  var isCollapsed=sidebar.classList.contains('collapsed');
+  if(btn)btn.innerHTML=isCollapsed?'&#8250;':'&#8249;';
+  if(btn)btn.title=isCollapsed?'Mostrar panel':'Ocultar panel';
+}
+
 // Check saved session on load
 (function(){
   var token=localStorage.getItem('dt_token');
@@ -309,7 +348,7 @@ function loadConversations(){
 
 function renderSidebar(){
   if(conversations.length===0){sidebarList.innerHTML='<div class="sidebar-empty">Sin conversaciones previas</div>';return}
-  var h='';for(var i=0;i<conversations.length;i++){var c=conversations[i],n=c.name||'Conversacion '+(i+1),a=c.id===conversationId?' active':'';h+='<div class="sidebar-item'+a+'" onclick="loadConversation(\''+c.id+'\')" title="'+n+'">'+n+'</div>'}
+  var h='';for(var i=0;i<conversations.length;i++){var c=conversations[i],n=c.name||'Conversacion '+(i+1),a=c.id===conversationId?' active':'';h+='<div class="sidebar-item'+a+'" onclick="loadConversation(\''+c.id+'\')" title="'+n+'">'+n+'<button class="delete-btn" onclick="deleteConversation(event,\''+c.id+'\')" title="Borrar conversacion">&#10005;</button></div>'}
   sidebarList.innerHTML=h;
 }
 
