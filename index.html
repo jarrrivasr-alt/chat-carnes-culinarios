@@ -213,12 +213,12 @@ body{height:100%;font-family:'Sora',sans-serif;background:var(--bg-dark);color:v
 <h2>Asistente Inteligente</h2>
 <p>Analizo tus datos de ventas, produccion y finanzas. Genero reportes, cotizaciones y los envio por email o en PDF descargable.</p>
 <div class="suggestions">
-<button class="suggestion" data-text="Resumen de ventas del mes" onclick="useSuggestion(this)">&#x1F4CA; Resumen de ventas del mes</button>
-<button class="suggestion" data-text="Top 5 productos mas vendidos" onclick="useSuggestion(this)">&#x1F969; Top 5 productos mas vendidos</button>
-<button class="suggestion" data-text="Desempeno de vendedores" onclick="useSuggestion(this)">&#x1F465; Desempeno de vendedores</button>
-<button class="suggestion" data-text="Estado de inventarios" onclick="useSuggestion(this)">&#x1F4E6; Estado de inventarios</button>
-<button class="suggestion" data-text="Cartera vencida" onclick="useSuggestion(this)">&#x1F4B0; Cartera vencida</button>
-<button class="suggestion" data-text="Generar cotizacion" onclick="useSuggestion(this)">&#x1F4CB; Generar cotizacion</button>
+<button class="suggestion" data-text="Dame el P&L del mes pasado" onclick="useSuggestion(this)">📊 P&L del mes pasado</button>
+<button class="suggestion" data-text="Como van las ventas vs presupuesto?" onclick="useSuggestion(this)">📈 Ventas vs presupuesto</button>
+<button class="suggestion" data-text="Cual es la cartera vencida y su antiguedad?" onclick="useSuggestion(this)">💰 Cartera vencida</button>
+<button class="suggestion" data-text="Que area tiene mejor margen de contribucion?" onclick="useSuggestion(this)">🏆 Mejor margen por area</button>
+<button class="suggestion" data-text="Top 5 clientes por volumen de compra" onclick="useSuggestion(this)">🥩 Top clientes</button>
+<button class="suggestion" data-text="Alerta de productos con stock bajo minimo" onclick="useSuggestion(this)">📦 Alertas de inventario</button>
 </div></div></div>
 <div class="input-area"><div class="input-wrapper">
 <textarea id="input" rows="1" placeholder="Escribe tu consulta..." onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
@@ -310,8 +310,18 @@ function toggleCollapse(){
   if(floatBtn)floatBtn.style.display=isCollapsed?'block':'none';
 }
 
-// Check saved session on load
+// Check URL params primero (viene del portal)
 (function(){
+  var params = new URLSearchParams(window.location.search);
+  var urlToken = params.get('token');
+  var urlNombre = params.get('nombre');
+  if(urlToken){
+    var fakeUser = {nombre: urlNombre ? decodeURIComponent(urlNombre) : 'Usuario', email: '', area: params.get('area')||'ventas'};
+    localStorage.setItem('dt_token', urlToken);
+    localStorage.setItem('dt_user', JSON.stringify(fakeUser));
+    enterApp(fakeUser, urlToken);
+    return;
+  }
   var token=localStorage.getItem('dt_token');
   var user=localStorage.getItem('dt_user');
   if(token&&user){
